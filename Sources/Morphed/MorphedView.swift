@@ -11,7 +11,7 @@ import CoreImage.CIFilterBuiltins
 
 public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: View, Mask: View {
     public var blurRadius: CGFloat = 50
-    public var frame: UnitFrame = .full
+    public var insets: EdgeInsets = .init()
     
     @ViewBuilder public let content: () -> Content
     @ViewBuilder public let mask: () -> Mask
@@ -35,7 +35,7 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
     }
     
     public func updateNSView(_ nsView: NSView, context: Context) {
-        nsView.subviews.filter { $0.tag == .max }.forEach { $0.removeFromSuperview() }
+        nsView.subviews.filter { $0.tag == FilterView.tag }.forEach { $0.removeFromSuperview() }
         
         let blurView = FilterView()
         blurView.translatesAutoresizingMaskIntoConstraints = false
@@ -43,23 +43,20 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
         
         DispatchQueue.main.async {
             let size = nsView.bounds.size
-            let frame = frame.transform(in: size)
+            let insettedSize = size.applyingInsets(insets)
             
             NSLayoutConstraint.activate([
-                blurView.leadingAnchor.constraint(equalTo: nsView.leadingAnchor, constant: frame.minX),
-                blurView.trailingAnchor.constraint(equalTo: nsView.trailingAnchor, constant: frame.maxX - size.width),
-                blurView.topAnchor.constraint(equalTo: nsView.topAnchor, constant: frame.maxY - size.height),
-                blurView.bottomAnchor.constraint(equalTo: nsView.bottomAnchor, constant: frame.minY)
+                blurView.leadingAnchor.constraint(equalTo: nsView.leadingAnchor, constant: insets.leading),
+                blurView.trailingAnchor.constraint(equalTo: nsView.trailingAnchor, constant: -insets.trailing),
+                blurView.topAnchor.constraint(equalTo: nsView.topAnchor, constant: insets.top),
+                blurView.bottomAnchor.constraint(equalTo: nsView.bottomAnchor, constant: -insets.bottom)
             ])
         
-            if let maskImage = renderToCGImage(size: size, view: mask) {
+            if let maskImage = renderToCGImage(size: insettedSize, view: mask) {
                 let filter = CIFilter.maskedVariableBlur()
                 filter.setDefaults()
                 filter.setValue(CIImage(cgImage: maskImage), forKey: "inputMask")
                 filter.radius = Float(self.blurRadius)
-//                let filter = CIFilter.gaussianBlur()
-//                filter.setDefaults()
-//                filter.radius = Float(self.blurRadius)
                 
                 blurView.prepare(filter: filter)
             }
@@ -67,57 +64,36 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
     }
     
     private func renderToCGImage<C: View>(size: CGSize, view: @escaping () -> C) -> CGImage? {
-//        guard let context = CGContext(
-//            data: nil,
-//            width: Int(round(size.width)),
-//            height: Int(round(size.height)),
-//            bitsPerComponent: 8,
-//            bytesPerRow: 0,
-//            space: CGColorSpaceCreateDeviceGray(),
-//            bitmapInfo: CGImageAlphaInfo.none.rawValue
-//        ) else { return nil }
-        
-//        let graphicsContext = NSGraphicsContext(cgContext: context, flipped: true)
-//        NSGraphicsContext.current = graphicsContext
-//        
-//        hostingView.layer?.render(in: context)
-//        
-//        NSGraphicsContext.current = nil
         let renderer = ImageRenderer(content: mask())
-        return renderer.cgImage
-//
-//        let colors: [NSColor] = [
-//            .black,
-//            .black,
-//            .black,
-//            .white,
-//        ]
-//        let cgcolors = colors.map { $0.cgColor } as CFArray
-//        
-//        guard
-//            let gradient = CGGradient(
-//                colorsSpace: CGColorSpaceCreateDeviceGray(),
-//                colors: cgcolors,
-//                locations: nil)
-//        else { return nil }
-//        
-//        context.drawLinearGradient(
-//            gradient,
-//            start: CGPoint(x: 0, y: 0),
-//            end: CGPoint(x: 0, y: size.height),
-//            options: [])  //[.drawsBeforeStartLocation, .drawsAfterEndLocation])
-//        return context.makeImage()
+        return renderer.cgImage.flatMap { resizeAndStretch($0, to: size) }
+    }
+    
+    private func resizeAndStretch(_ image: CGImage, to size: CGSize) -> CGImage? {
+        guard let context = CGContext(
+            data: nil,
+            width: Int(size.width),
+            height: Int(size.height),
+            bitsPerComponent: image.bitsPerComponent,
+            bytesPerRow: 0,
+            space: image.colorSpace ?? CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: image.bitmapInfo.rawValue
+        ) else {
+            return nil
+        }
+        
+        context.draw(image, in: CGRect(origin: .zero, size: size))
+        return context.makeImage()
     }
 }
 
 #Preview {
-    MorphedView {
+    MorphedView(insets: .init(top: 50, leading: 0, bottom: 50, trailing: 0)) {
         ScrollView {
             LinearGradient(colors: [.red, .yellow, .green, .blue, .purple], startPoint: .top, endPoint: .bottom)
-                .frame(width: 200, height: 1000)
+                .frame(height: 1000)
         }
-        .frame(height: 300)
+        .frame(minWidth: 200, minHeight: 300)
     } mask: {
-        Color.white.frame(width: 200, height: 500)
+        LinearGradient(colors: [.white, .black], startPoint: .top, endPoint: .bottom)
     }
 }

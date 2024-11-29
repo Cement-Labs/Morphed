@@ -15,7 +15,8 @@ import CoreImage
 import CoreImage.CIFilterBuiltins
 
 public class FilterView: NSView {
-    private var _tag: Int = .max
+    public static let tag: Int = 8080
+    private var _tag: Int = FilterView.tag
 
     public func prepare(filter: CIFilter) {
         wantsLayer = true
