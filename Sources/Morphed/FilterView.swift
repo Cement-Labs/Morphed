@@ -22,6 +22,7 @@ public class FilterView: NSView {
         layerUsesCoreImageFilters = true
         layerContentsRedrawPolicy = .onSetNeedsDisplay
         layer?.backgroundColor = NSColor.clear.cgColor
+        layer?.masksToBounds = true
         layer?.backgroundFilters = [filter]
     }
 

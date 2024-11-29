@@ -11,6 +11,9 @@ public struct UnitFrame {
     public var start: UnitPoint
     public var end: UnitPoint
     
+    public static var zero: Self { .init(start: .zero, end: .zero) }
+    public static var full: Self { .init() }
+    
     public init(start: UnitPoint = .topLeading, end: UnitPoint = .bottomTrailing) {
         self.start = start
         self.end = end
