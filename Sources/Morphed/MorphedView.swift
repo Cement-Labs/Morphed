@@ -16,6 +16,28 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
     @ViewBuilder public let content: () -> Content
     @ViewBuilder public let mask: () -> Mask
     
+    @State private var size: CGSize = .zero
+    
+    @MainActor public class Coordinator: NSObject {
+        var parent: MorphedView
+        
+        init(parent: MorphedView) {
+            self.parent = parent
+        }
+        
+        @objc func frameChanged(_ notification: Notification) {
+            if let view = notification.object as? NSView {
+                DispatchQueue.main.async { [weak self] in
+                    self?.parent.size = view.frame.size
+                }
+            }
+        }
+    }
+    
+    public func makeCoordinator() -> Coordinator {
+        return Coordinator(parent: self)
+    }
+    
     public func makeNSView(context: Context) -> NSView {
         let view = NSHostingView(rootView: content())
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -31,10 +53,19 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
             view.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)
         ])
         
+        containerView.postsFrameChangedNotifications = true
+        NotificationCenter.default.addObserver(
+            context.coordinator,
+            selector: #selector(Coordinator.frameChanged(_:)),
+            name: NSView.frameDidChangeNotification,
+            object: containerView
+        )
+        
         return containerView
     }
     
     public func updateNSView(_ nsView: NSView, context: Context) {
+        let size = size // important for triggering view update
         nsView.subviews.filter { $0.tag == FilterView.tag }.forEach { $0.removeFromSuperview() }
         
         let blurView = FilterView()
@@ -42,7 +73,6 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
         nsView.addSubview(blurView, positioned: .above, relativeTo: nil)
         
         DispatchQueue.main.async {
-            let size = nsView.bounds.size
             let insettedSize = size.applyingInsets(insets)
             
             NSLayoutConstraint.activate([
