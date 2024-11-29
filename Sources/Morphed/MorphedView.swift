@@ -76,7 +76,7 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
         DispatchQueue.main.async {
             self.removeBlurView(nsView)
             let blurView = self.attachBlurView(nsView)
-            let insettedSize = size.applyingInsets(.init(top: 0, leading: 0, bottom: appliedInsets.bottom, trailing: appliedInsets.trailing))
+            let insettedSize = size.applyingInsets(.init(top: appliedInsets.top, leading: 0, bottom: 0, trailing: appliedInsets.trailing))
         
             if let maskImage = renderToCGImage(size: insettedSize, view: mask) {
                 let filter = CIFilter.maskedVariableBlur()
@@ -133,13 +133,14 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
 }
 
 #Preview {
-    MorphedView(insets: .init(leading: .fixed(length: 50), trailing: .fixed(length: 300).mirrored)) {
+    MorphedView(insets: .init(top: .fixed(length: 20), leading: .fixed(length: 50), bottom: .fixed(length: 100).mirrored, trailing: .fixed(length: 300).mirrored)) {
         ScrollView {
             LinearGradient(colors: [.red, .yellow, .green, .blue, .purple], startPoint: .top, endPoint: .bottom)
                 .frame(height: 1000)
         }
         .frame(minWidth: 200, minHeight: 300)
     } mask: {
-        LinearGradient(colors: [.white, .black], startPoint: .top, endPoint: .bottom)
+//        LinearGradient(colors: [.white, .black], startPoint: .top, endPoint: .bottom)
+        Color.white
     }
 }
