@@ -45,6 +45,8 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
         view.layer?.backgroundColor = .clear
         
         let containerView = NSView()
+        containerView.translatesAutoresizingMaskIntoConstraints = false
+        
         containerView.addSubview(view)
         NSLayoutConstraint.activate([
             view.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
@@ -66,21 +68,11 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
     
     public func updateNSView(_ nsView: NSView, context: Context) {
         let size = size // important for triggering view update
-        nsView.subviews.filter { $0.tag == FilterView.tag }.forEach { $0.removeFromSuperview() }
-        
-        let blurView = FilterView()
-        blurView.translatesAutoresizingMaskIntoConstraints = false
-        nsView.addSubview(blurView, positioned: .above, relativeTo: nil)
         
         DispatchQueue.main.async {
-            let insettedSize = size.applyingInsets(insets)
-            
-            NSLayoutConstraint.activate([
-                blurView.leadingAnchor.constraint(equalTo: nsView.leadingAnchor, constant: insets.leading),
-                blurView.trailingAnchor.constraint(equalTo: nsView.trailingAnchor, constant: -insets.trailing),
-                blurView.topAnchor.constraint(equalTo: nsView.topAnchor, constant: insets.top),
-                blurView.bottomAnchor.constraint(equalTo: nsView.bottomAnchor, constant: -insets.bottom)
-            ])
+            self.removeBlurView(nsView)
+            let blurView = self.attachBlurView(nsView)
+            let insettedSize = size.applyingInsets(.init(top: 0, leading: 0, bottom: insets.bottom, trailing: insets.trailing))
         
             if let maskImage = renderToCGImage(size: insettedSize, view: mask) {
                 let filter = CIFilter.maskedVariableBlur()
@@ -91,6 +83,26 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
                 blurView.prepare(filter: filter)
             }
         }
+    }
+    
+    private func removeBlurView(_ nsView: NSView) {
+        nsView.subviews.filter { $0.tag == FilterView.tag }.forEach { $0.removeFromSuperview() }
+    }
+    
+    private func attachBlurView(_ nsView: NSView) -> FilterView {
+        let blurView = FilterView()
+        blurView.translatesAutoresizingMaskIntoConstraints = false
+        nsView.addSubview(blurView, positioned: .above, relativeTo: nil)
+        
+        NSLayoutConstraint.activate([
+            blurView.leadingAnchor.constraint(equalTo: nsView.leadingAnchor, constant: insets.leading),
+            blurView.trailingAnchor.constraint(equalTo: nsView.trailingAnchor, constant: -insets.trailing),
+            blurView.topAnchor.constraint(equalTo: nsView.topAnchor, constant: insets.top),
+            blurView.bottomAnchor.constraint(equalTo: nsView.bottomAnchor, constant: -insets.bottom)
+        ])
+        print(blurView.bounds.origin)
+        
+        return blurView
     }
     
     private func renderToCGImage<C: View>(size: CGSize, view: @escaping () -> C) -> CGImage? {
@@ -117,7 +129,7 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
 }
 
 #Preview {
-    MorphedView(insets: .init(top: 50, leading: 0, bottom: 50, trailing: 0)) {
+    MorphedView(insets: .init(top: 0, leading: 50, bottom: 0, trailing: 50)) {
         ScrollView {
             LinearGradient(colors: [.red, .yellow, .green, .blue, .purple], startPoint: .top, endPoint: .bottom)
                 .frame(height: 1000)
