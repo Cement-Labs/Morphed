@@ -9,7 +9,7 @@ import SwiftUI
 
 public struct MorphedViewModifier<Mask>: ViewModifier where Mask: View {
     public var blurRadius: CGFloat = 50
-    public var insets: EdgeInsets = .init()
+    public var insets: MorphedInsets = .init()
     
     @ViewBuilder public var mask: () -> Mask
     

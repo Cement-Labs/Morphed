@@ -11,12 +11,16 @@ import CoreImage.CIFilterBuiltins
 
 public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: View, Mask: View {
     public var blurRadius: CGFloat = 50
-    public var insets: EdgeInsets = .init()
+    public var insets: MorphedInsets = .init()
     
     @ViewBuilder public let content: () -> Content
     @ViewBuilder public let mask: () -> Mask
     
     @State private var size: CGSize = .zero
+    
+    private var appliedInsets: EdgeInsets {
+        insets.apply(to: size)
+    }
     
     @MainActor public class Coordinator: NSObject {
         var parent: MorphedView
@@ -72,7 +76,7 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
         DispatchQueue.main.async {
             self.removeBlurView(nsView)
             let blurView = self.attachBlurView(nsView)
-            let insettedSize = size.applyingInsets(.init(top: 0, leading: 0, bottom: insets.bottom, trailing: insets.trailing))
+            let insettedSize = size.applyingInsets(.init(top: 0, leading: 0, bottom: appliedInsets.bottom, trailing: appliedInsets.trailing))
         
             if let maskImage = renderToCGImage(size: insettedSize, view: mask) {
                 let filter = CIFilter.maskedVariableBlur()
@@ -95,10 +99,10 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
         nsView.addSubview(blurView, positioned: .above, relativeTo: nil)
         
         NSLayoutConstraint.activate([
-            blurView.leadingAnchor.constraint(equalTo: nsView.leadingAnchor, constant: insets.leading),
-            blurView.trailingAnchor.constraint(equalTo: nsView.trailingAnchor, constant: -insets.trailing),
-            blurView.topAnchor.constraint(equalTo: nsView.topAnchor, constant: insets.top),
-            blurView.bottomAnchor.constraint(equalTo: nsView.bottomAnchor, constant: -insets.bottom)
+            blurView.leadingAnchor.constraint(equalTo: nsView.leadingAnchor, constant: appliedInsets.leading),
+            blurView.trailingAnchor.constraint(equalTo: nsView.trailingAnchor, constant: -appliedInsets.trailing),
+            blurView.topAnchor.constraint(equalTo: nsView.topAnchor, constant: appliedInsets.top),
+            blurView.bottomAnchor.constraint(equalTo: nsView.bottomAnchor, constant: -appliedInsets.bottom)
         ])
         print(blurView.bounds.origin)
         
@@ -129,7 +133,7 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
 }
 
 #Preview {
-    MorphedView(insets: .init(top: 0, leading: 50, bottom: 0, trailing: 50)) {
+    MorphedView(insets: .init(leading: .fixed(length: 50), trailing: .fixed(length: 300).mirrored)) {
         ScrollView {
             LinearGradient(colors: [.red, .yellow, .green, .blue, .purple], startPoint: .top, endPoint: .bottom)
                 .frame(height: 1000)
