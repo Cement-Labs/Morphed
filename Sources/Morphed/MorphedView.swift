@@ -134,7 +134,7 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
 }
 
 #Preview {
-    MorphedView(insets: .init(leading: .fixed(length: 50))) {
+    MorphedView(insets: .init(top: .fixed(length: 50), leading: .fixed(length: 50), bottom: .fixed(length: 150).mirrored)) {
         ScrollView {
             LinearGradient(colors: [.red, .yellow, .green, .blue, .purple], startPoint: .top, endPoint: .bottom)
                 .frame(height: 1000)

@@ -12,7 +12,7 @@ extension CGSize {
         let newWidth = self.width - (insets.leading + insets.trailing)
         let newHeight = self.height - (insets.top + insets.bottom)
         return .init(
-            x: insets.leading, y: insets.top,
+            x: insets.leading, y: insets.bottom,
             width: max(0, newWidth), height: max(0, newHeight)
         )
     }
