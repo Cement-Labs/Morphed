@@ -62,7 +62,7 @@ public class MaskedVariableBlurView: NSView {
         
         let size = bounds.size
         let insets = insets.apply(to: size)
-        let frame = size.translatingInsets(insets) // the insetted frame
+        let frame = size.applyingInsets(insets) // the insetted frame
         
         maskLayer.frame = frame
         guard let mask = resizeAndStretch(mask, to: size, in: frame) else { return }
