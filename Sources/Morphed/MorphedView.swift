@@ -16,20 +16,14 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
     @ViewBuilder public let content: () -> Content
     @ViewBuilder public let mask: () -> Mask
     
-    @State private var size: CGSize = .zero
-    
     public func makeNSView(context: Context) -> NSView {
         let view = NSHostingView(rootView: content())
         view.translatesAutoresizingMaskIntoConstraints = false
         view.wantsLayer = true
         view.layer?.backgroundColor = .clear
-        view.layer?.shouldRasterize = false
         
         let containerView = NSView()
         containerView.translatesAutoresizingMaskIntoConstraints = false
-        containerView.wantsLayer = true
-        containerView.layer?.backgroundColor = .clear
-        containerView.layer?.shouldRasterize = false
         
         containerView.addSubview(view)
         NSLayoutConstraint.activate([
@@ -39,20 +33,10 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
             view.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)
         ])
         
-        containerView.postsFrameChangedNotifications = true
-        NotificationCenter.default.addObserver(
-            context.coordinator,
-            selector: #selector(Coordinator.frameChanged(_:)),
-            name: NSView.frameDidChangeNotification,
-            object: containerView
-        )
-        
         return containerView
     }
     
     public func updateNSView(_ nsView: NSView, context: Context) {
-        let _ = size // important for triggering view update
-        
         DispatchQueue.main.async {
             self.removeBlurView(from: nsView)
             self.attachBlurView(to: nsView)
@@ -100,8 +84,8 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
             }
             .frame(minWidth: 200, minHeight: 300)
         } mask: {
-//            LinearGradient(colors: [.white, .black], startPoint: .top, endPoint: .bottom)
-            Color.clear
+            LinearGradient(colors: [.white, .black], startPoint: .top, endPoint: .bottom)
+//            Color.clear
         }
     }
 }

@@ -22,6 +22,8 @@ public class MaskedVariableBlurView: NSView {
     var blurRadius: CGFloat
     var insets: MorphedInsets
     
+    private var maskLayer: CALayer = .init()
+    
     init(tag: Int = MaskedVariableBlurView.tag, mask: CGImage, blurRadius: CGFloat, insets: MorphedInsets) {
         self._tag = tag
         self.mask = mask
@@ -39,8 +41,10 @@ public class MaskedVariableBlurView: NSView {
         layerUsesCoreImageFilters = true
         layerContentsRedrawPolicy = .duringViewResize
         layer?.backgroundColor = .clear
-        layer?.shouldRasterize = false
         layer?.backgroundFilters = [filter]
+        
+        maskLayer.backgroundColor = .white
+        layer?.mask = maskLayer
     }
 
     public override var tag: Int {
@@ -60,6 +64,7 @@ public class MaskedVariableBlurView: NSView {
         let insets = insets.apply(to: size)
         let frame = size.translatingInsets(insets) // the insetted frame
         
+        maskLayer.frame = frame
         guard let mask = resizeAndStretch(mask, to: size, in: frame) else { return }
         
         let filter = CIFilter.maskedVariableBlur()
