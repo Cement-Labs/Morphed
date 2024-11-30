@@ -47,15 +47,11 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
         view.translatesAutoresizingMaskIntoConstraints = false
         view.wantsLayer = true
         view.layer?.backgroundColor = .clear
-        view.layer?.contentsScale = NSScreen.main?.backingScaleFactor ?? 2
-        view.layer?.rasterizationScale = NSScreen.main?.backingScaleFactor ?? 2
         
         let containerView = NSView()
         containerView.translatesAutoresizingMaskIntoConstraints = false
         containerView.wantsLayer = true
         containerView.layer?.backgroundColor = .clear
-        containerView.layer?.contentsScale = NSScreen.main?.backingScaleFactor ?? 2
-        containerView.layer?.rasterizationScale = NSScreen.main?.backingScaleFactor ?? 2
         
         containerView.addSubview(view)
         NSLayoutConstraint.activate([
@@ -90,19 +86,17 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
     }
     
     private func attachBlurView(to nsView: NSView) {
-        guard let maskImage = renderToCGImage(view: mask) else { return }
-        let blurView = MaskedVariableBlurView(mask: .init(cgImage: maskImage), blurRadius: blurRadius, insets: appliedInsets)
+        guard let mask = renderToCGImage(view: mask) else { return }
+        let blurView = MaskedVariableBlurView(mask: mask, blurRadius: blurRadius, insets: appliedInsets)
         
         blurView.translatesAutoresizingMaskIntoConstraints = false
-        blurView.layer?.contentsScale = NSScreen.main?.backingScaleFactor ?? 2
-        blurView.layer?.rasterizationScale = NSScreen.main?.backingScaleFactor ?? 2
         nsView.addSubview(blurView, positioned: .above, relativeTo: nil)
         
         NSLayoutConstraint.activate([
             blurView.leadingAnchor.constraint(equalTo: nsView.leadingAnchor, constant: appliedInsets.leading),
             blurView.trailingAnchor.constraint(equalTo: nsView.trailingAnchor, constant: -appliedInsets.trailing),
             blurView.topAnchor.constraint(equalTo: nsView.topAnchor, constant: appliedInsets.top),
-            blurView.bottomAnchor.constraint(equalTo: nsView.bottomAnchor, constant: appliedInsets.bottom)
+            blurView.bottomAnchor.constraint(equalTo: nsView.bottomAnchor, constant: -appliedInsets.bottom)
         ])
     }
     
@@ -115,7 +109,7 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
 #Preview {
     ZStack {
         Color.accentColor
-        MorphedView(insets: .init(leading: .fixed(length: 20), trailing: .fixed(length: 20))) {
+        MorphedView(insets: .init(bottom: .fixed(length: 150).mirrored)) {
             ScrollView {
                 LinearGradient(colors: [.red, .yellow, .green, .blue, .purple], startPoint: .top, endPoint: .bottom)
                     .frame(height: 1000)

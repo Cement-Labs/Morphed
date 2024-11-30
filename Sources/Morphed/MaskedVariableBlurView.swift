@@ -18,11 +18,11 @@ public class MaskedVariableBlurView: NSView {
     public static let tag: Int = 8080
     private var _tag: Int
     
-    var mask: CIImage
+    var mask: CGImage
     var blurRadius: CGFloat
     var insets: EdgeInsets
     
-    init(tag: Int = MaskedVariableBlurView.tag, mask: CIImage, blurRadius: CGFloat, insets: EdgeInsets) {
+    init(tag: Int = MaskedVariableBlurView.tag, mask: CGImage, blurRadius: CGFloat, insets: EdgeInsets) {
         self._tag = tag
         self.mask = mask
         self.blurRadius = blurRadius
@@ -39,9 +39,7 @@ public class MaskedVariableBlurView: NSView {
         layerUsesCoreImageFilters = true
         layerContentsRedrawPolicy = .duringViewResize
         layer?.backgroundColor = .clear
-        layer?.masksToBounds = true
         layer?.backgroundFilters = [filter]
-        layer?.contentsGravity = .resize
     }
 
     public override var tag: Int {
@@ -56,15 +54,34 @@ public class MaskedVariableBlurView: NSView {
     
     public override func layout() {
         super.layout()
-        
-        let scaledMask = mask.transformed(by: .init(
-            scaleX: bounds.width / mask.extent.width, y: bounds.height / mask.extent.height
-        ))
+        // get the original view size (canvas size)
+        let size = bounds.size.applyingInsets(insets, sign: .plus).size
+        // get the insetted frame
+        let frame = bounds.size.translatingInsets(insets)
+        guard let mask = resizeAndStretch(mask, to: size, in: frame) else { return }
         
         let filter = CIFilter.maskedVariableBlur()
         filter.setDefaults()
-        filter.setValue(scaledMask, forKey: "inputMask")
+        filter.setValue(CIImage(cgImage: mask), forKey: "inputMask")
         filter.radius = Float(blurRadius)
+        
         prepare(filter: filter)
+    }
+    
+    private func resizeAndStretch(_ image: CGImage, to size: CGSize, in frame: CGRect) -> CGImage? {
+        guard let context = CGContext(
+            data: nil,
+            width: Int(size.width),
+            height: Int(size.height),
+            bitsPerComponent: image.bitsPerComponent,
+            bytesPerRow: 0,
+            space: image.colorSpace ?? CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: image.bitmapInfo.rawValue
+        ) else {
+            return nil
+        }
+        
+        context.draw(image, in: frame)
+        return context.makeImage()
     }
 }
