@@ -77,30 +77,22 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
     }
     
     public func updateNSView(_ nsView: NSView, context: Context) {
-        let size = size // important for triggering view update
+        let _ = size // important for triggering view update
         
         DispatchQueue.main.async {
-            self.removeBlurView(nsView)
-            let blurView = self.attachBlurView(nsView)
-            let frame = size.applyingInsets(appliedInsets)
-        
-            if let maskImage = renderToCGImage(to: size, in: frame, view: mask) {
-                let filter = CIFilter.maskedVariableBlur()
-                filter.setDefaults()
-                filter.setValue(CIImage(cgImage: maskImage), forKey: "inputMask")
-                filter.radius = Float(self.blurRadius)
-                
-                blurView.prepare(filter: filter)
-            }
+            self.removeBlurView(from: nsView)
+            self.attachBlurView(to: nsView)
         }
     }
     
-    private func removeBlurView(_ nsView: NSView) {
-        nsView.subviews.filter { $0.tag == FilterView.tag }.forEach { $0.removeFromSuperview() }
+    private func removeBlurView(from nsView: NSView) {
+        nsView.subviews.filter { $0.tag == MaskedVariableBlurView.tag }.forEach { $0.removeFromSuperview() }
     }
     
-    private func attachBlurView(_ nsView: NSView) -> FilterView {
-        let blurView = FilterView()
+    private func attachBlurView(to nsView: NSView) {
+        guard let maskImage = renderToCGImage(view: mask) else { return }
+        let blurView = MaskedVariableBlurView(mask: .init(cgImage: maskImage), blurRadius: blurRadius)
+        
         blurView.translatesAutoresizingMaskIntoConstraints = false
         blurView.layer?.contentsScale = NSScreen.main?.backingScaleFactor ?? 2
         blurView.layer?.rasterizationScale = NSScreen.main?.backingScaleFactor ?? 2
@@ -112,30 +104,11 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
             blurView.topAnchor.constraint(equalTo: nsView.topAnchor, constant: appliedInsets.top),
             blurView.bottomAnchor.constraint(equalTo: nsView.bottomAnchor, constant: -appliedInsets.bottom)
         ])
-        
-        return blurView
     }
     
-    private func renderToCGImage<C: View>(to size: CGSize, in frame: CGRect, view: @escaping () -> C) -> CGImage? {
+    private func renderToCGImage<C: View>(view: @escaping () -> C) -> CGImage? {
         let renderer = ImageRenderer(content: mask())
-        return renderer.cgImage.flatMap { resizeAndStretch($0, to: size, in: frame) }
-    }
-    
-    private func resizeAndStretch(_ image: CGImage, to size: CGSize, in frame: CGRect) -> CGImage? {
-        guard let context = CGContext(
-            data: nil,
-            width: Int(size.width),
-            height: Int(size.height),
-            bitsPerComponent: image.bitsPerComponent,
-            bytesPerRow: 0,
-            space: image.colorSpace ?? CGColorSpaceCreateDeviceRGB(),
-            bitmapInfo: image.bitmapInfo.rawValue
-        ) else {
-            return nil
-        }
-        
-        context.draw(image, in: frame)
-        return context.makeImage()
+        return renderer.cgImage
     }
 }
 
