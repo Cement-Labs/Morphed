@@ -18,30 +18,6 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
     
     @State private var size: CGSize = .zero
     
-    private var appliedInsets: EdgeInsets {
-        insets.apply(to: size)
-    }
-    
-    @MainActor public class Coordinator: NSObject {
-        var parent: MorphedView
-        
-        init(parent: MorphedView) {
-            self.parent = parent
-        }
-        
-        @objc func frameChanged(_ notification: Notification) {
-            if let view = notification.object as? NSView {
-                DispatchQueue.main.async { [weak self] in
-                    self?.parent.size = view.frame.size
-                }
-            }
-        }
-    }
-    
-    public func makeCoordinator() -> Coordinator {
-        return Coordinator(parent: self)
-    }
-    
     public func makeNSView(context: Context) -> NSView {
         let view = NSHostingView(rootView: content())
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -89,16 +65,16 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
     
     private func attachBlurView(to nsView: NSView) {
         guard let mask = renderToCGImage(view: mask) else { return }
-        let blurView = MaskedVariableBlurView(mask: mask, blurRadius: blurRadius, insets: appliedInsets)
+        let blurView = MaskedVariableBlurView(mask: mask, blurRadius: blurRadius, insets: insets)
         
         blurView.translatesAutoresizingMaskIntoConstraints = false
         nsView.addSubview(blurView, positioned: .above, relativeTo: nil)
         
         NSLayoutConstraint.activate([
-            blurView.leadingAnchor.constraint(equalTo: nsView.leadingAnchor, constant: appliedInsets.leading),
-            blurView.trailingAnchor.constraint(equalTo: nsView.trailingAnchor, constant: -appliedInsets.trailing),
-            blurView.topAnchor.constraint(equalTo: nsView.topAnchor, constant: appliedInsets.top),
-            blurView.bottomAnchor.constraint(equalTo: nsView.bottomAnchor, constant: -appliedInsets.bottom)
+            blurView.leadingAnchor.constraint(equalTo: nsView.leadingAnchor),
+            blurView.trailingAnchor.constraint(equalTo: nsView.trailingAnchor),
+            blurView.topAnchor.constraint(equalTo: nsView.topAnchor),
+            blurView.bottomAnchor.constraint(equalTo: nsView.bottomAnchor)
         ])
     }
     
@@ -124,8 +100,8 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
             }
             .frame(minWidth: 200, minHeight: 300)
         } mask: {
-            LinearGradient(colors: [.white, .black], startPoint: .top, endPoint: .bottom)
-            //        Color.white
+//            LinearGradient(colors: [.white, .black], startPoint: .top, endPoint: .bottom)
+            Color.clear
         }
     }
 }
