@@ -21,6 +21,7 @@ public extension View {
     ) -> some View {
         modifier(MorphedViewModifier(blurRadius: blurRadius, insets: insets) {
             linearGradient
+                .frame(width: 1024, height: 1024)
         })
     }
 }
