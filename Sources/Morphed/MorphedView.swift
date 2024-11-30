@@ -71,7 +71,7 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
 #Preview {
     ZStack {
         Color.accentColor
-        MorphedView(insets: .init(bottom: .fixed(length: 150).mirrored)) {
+        MorphedView(insets: .init(bottom: .fixed(length: 64).mirrored)) {
             ScrollView {
                 LinearGradient(colors: [.red, .yellow, .green, .blue, .purple], startPoint: .top, endPoint: .bottom)
                     .frame(height: 1000)
@@ -85,7 +85,7 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
             .frame(minWidth: 200, minHeight: 300)
         } mask: {
             LinearGradient(colors: [.white, .black], startPoint: .top, endPoint: .bottom)
-//            Color.clear
+//            Color.white
         }
     }
 }
