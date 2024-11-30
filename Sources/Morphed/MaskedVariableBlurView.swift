@@ -38,7 +38,8 @@ public class MaskedVariableBlurView: NSView {
         wantsLayer = true
         layerUsesCoreImageFilters = true
         layerContentsRedrawPolicy = .duringViewResize
-        layer?.backgroundColor = .clear
+        layer?.backgroundColor = .white
+        layer?.shouldRasterize = false
         layer?.backgroundFilters = [filter]
     }
 

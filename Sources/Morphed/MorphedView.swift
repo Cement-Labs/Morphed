@@ -47,11 +47,13 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
         view.translatesAutoresizingMaskIntoConstraints = false
         view.wantsLayer = true
         view.layer?.backgroundColor = .clear
+        view.layer?.shouldRasterize = false
         
         let containerView = NSView()
         containerView.translatesAutoresizingMaskIntoConstraints = false
         containerView.wantsLayer = true
         containerView.layer?.backgroundColor = .clear
+        containerView.layer?.shouldRasterize = false
         
         containerView.addSubview(view)
         NSLayoutConstraint.activate([
