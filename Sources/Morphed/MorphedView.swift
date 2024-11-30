@@ -91,7 +91,7 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
     
     private func attachBlurView(to nsView: NSView) {
         guard let maskImage = renderToCGImage(view: mask) else { return }
-        let blurView = MaskedVariableBlurView(mask: .init(cgImage: maskImage), blurRadius: blurRadius)
+        let blurView = MaskedVariableBlurView(mask: .init(cgImage: maskImage), blurRadius: blurRadius, insets: appliedInsets)
         
         blurView.translatesAutoresizingMaskIntoConstraints = false
         blurView.layer?.contentsScale = NSScreen.main?.backingScaleFactor ?? 2
@@ -102,7 +102,7 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
             blurView.leadingAnchor.constraint(equalTo: nsView.leadingAnchor, constant: appliedInsets.leading),
             blurView.trailingAnchor.constraint(equalTo: nsView.trailingAnchor, constant: -appliedInsets.trailing),
             blurView.topAnchor.constraint(equalTo: nsView.topAnchor, constant: appliedInsets.top),
-            blurView.bottomAnchor.constraint(equalTo: nsView.bottomAnchor, constant: -appliedInsets.bottom)
+            blurView.bottomAnchor.constraint(equalTo: nsView.bottomAnchor, constant: appliedInsets.bottom)
         ])
     }
     
@@ -115,7 +115,7 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
 #Preview {
     ZStack {
         Color.accentColor
-        MorphedView(insets: .init(top: .relative(factor: 0.5))) {
+        MorphedView(insets: .init(leading: .fixed(length: 20), trailing: .fixed(length: 20))) {
             ScrollView {
                 LinearGradient(colors: [.red, .yellow, .green, .blue, .purple], startPoint: .top, endPoint: .bottom)
                     .frame(height: 1000)

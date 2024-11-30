@@ -10,7 +10,7 @@
 //  Copyright © 2018 usagimaru.
 //
 
-import AppKit
+import SwiftUI
 import CoreImage
 import CoreImage.CIFilterBuiltins
 
@@ -20,11 +20,13 @@ public class MaskedVariableBlurView: NSView {
     
     var mask: CIImage
     var blurRadius: CGFloat
+    var insets: EdgeInsets
     
-    init(tag: Int = MaskedVariableBlurView.tag, mask: CIImage, blurRadius: CGFloat) {
+    init(tag: Int = MaskedVariableBlurView.tag, mask: CIImage, blurRadius: CGFloat, insets: EdgeInsets) {
         self._tag = tag
         self.mask = mask
         self.blurRadius = blurRadius
+        self.insets = insets
         super.init(frame: .zero)
     }
     
@@ -54,12 +56,11 @@ public class MaskedVariableBlurView: NSView {
     
     public override func layout() {
         super.layout()
-        layer?.frame = bounds
-        layer?.mask?.frame = bounds
         
         let scaledMask = mask.transformed(by: .init(
             scaleX: bounds.width / mask.extent.width, y: bounds.height / mask.extent.height
         ))
+        
         let filter = CIFilter.maskedVariableBlur()
         filter.setDefaults()
         filter.setValue(scaledMask, forKey: "inputMask")
