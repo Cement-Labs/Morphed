@@ -30,6 +30,14 @@ public class MaskedVariableBlurView: NSView {
         self.blurRadius = blurRadius
         self.insets = insets
         super.init(frame: .zero)
+        
+        wantsLayer = true
+        layerUsesCoreImageFilters = true
+        layerContentsRedrawPolicy = .duringViewResize
+        layer?.backgroundColor = .clear
+        
+        maskLayer.backgroundColor = .white
+        layer?.mask = maskLayer
     }
     
     required init?(coder: NSCoder) {
@@ -37,14 +45,7 @@ public class MaskedVariableBlurView: NSView {
     }
     
     public func prepare(filter: CIFilter) {
-        wantsLayer = true
-        layerUsesCoreImageFilters = true
-        layerContentsRedrawPolicy = .duringViewResize
-        layer?.backgroundColor = .clear
         layer?.backgroundFilters = [filter]
-        
-        maskLayer.backgroundColor = .white
-        layer?.mask = maskLayer
     }
 
     public override var tag: Int {
@@ -65,6 +66,7 @@ public class MaskedVariableBlurView: NSView {
         let frame = size.applyingInsets(insets) // the insetted frame
         
         maskLayer.frame = frame
+        maskLayer.removeAllAnimations() // hack
         guard let mask = resizeAndStretch(mask, to: size, in: frame) else { return }
         
         let filter = CIFilter.maskedVariableBlur()

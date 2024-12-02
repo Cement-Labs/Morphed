@@ -33,18 +33,13 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
             view.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)
         ])
         
+        attachBlurView(to: containerView)
+        
         return containerView
     }
     
     public func updateNSView(_ nsView: NSView, context: Context) {
-        DispatchQueue.main.async {
-            self.removeBlurView(from: nsView)
-            self.attachBlurView(to: nsView)
-        }
-    }
-    
-    private func removeBlurView(from nsView: NSView) {
-        nsView.subviews.filter { $0.tag == MaskedVariableBlurView.tag }.forEach { $0.removeFromSuperview() }
+        
     }
     
     private func attachBlurView(to nsView: NSView) {
