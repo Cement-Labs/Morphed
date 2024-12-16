@@ -1,1 +1,3 @@
-<h1 align="center">Morphed<br /><h6>Procedural progressive blur on macOS, designed for SwiftUI.</h6></h1>
+<h1 align="center">Morphed</h1>
+
+<h6 align="center">Procedural progressive blur on <ins>macOS</ins>, designed for <ins>SwiftUI</ins>.</h6>
