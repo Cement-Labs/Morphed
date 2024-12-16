@@ -9,12 +9,33 @@ import SwiftUI
 import CoreImage
 import CoreImage.CIFilterBuiltins
 
+/// Applies a progressive gradient effect to a view.
 public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: View, Mask: View {
-    public var blurRadius: CGFloat = 50
-    public var insets: MorphedInsets = .init()
+    public let blurRadius: CGFloat
+    public let insets: MorphedInsets
     
-    @ViewBuilder public let content: () -> Content
-    @ViewBuilder public let mask: () -> Mask
+    @ViewBuilder public var content: () -> Content
+    @ViewBuilder public var mask: () -> Mask
+    
+    /// Initializes a ``MorphedView``.
+    ///
+    /// - Parameters:
+    ///   - blurRadius: the maximum radius of the blur effect.
+    ///   The final blur radius of every pixel will dynamically adjust based on the mask, where *full white* returns the maximum radius and *full black* returns zero.
+    ///   - insets: the ``MorphedInsets`` that defines the insets of the blur effect.
+    ///   - content: the content to apply the blur effect to.
+    ///   - mask: the mask that configures the strength of the blur.
+    public init(
+        blurRadius: CGFloat = 50,
+        insets: MorphedInsets = .init(),
+        @ViewBuilder content: @escaping () -> Content,
+        @ViewBuilder mask: @escaping () -> Mask
+    ) {
+        self.blurRadius = blurRadius
+        self.insets = insets
+        self.content = content
+        self.mask = mask
+    }
     
     public func makeNSView(context: Context) -> NSView {
         let view = NSHostingView(rootView: content())
@@ -80,7 +101,6 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
             .frame(minWidth: 200, minHeight: 300)
         } mask: {
             LinearGradient(colors: [.white, .black], startPoint: .top, endPoint: .bottom)
-//            Color.white
         }
     }
 }
