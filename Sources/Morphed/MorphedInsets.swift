@@ -14,74 +14,74 @@ public enum MorphedInset: Hashable, Equatable {
     /// - Parameters:
     ///   - length: the fixed length to inset.
     case fixed(length: CGFloat)
-    
+
     /// A fixed, mirrored inset.
     ///
     /// - Parameters:
     ///   - length: the fixed length to inset from the mirrored direction.
     case fixedMirrored(length: CGFloat)
-    
+
     /// A relative inset.
     ///
     /// - Parameters:
     ///   - factor: the relative factor to inset, representing a proportional length of the applied view.
     case relative(factor: CGFloat)
-    
+
     /// A relative, mirrored inset.
     ///
     /// - Parameters:
     ///   - factor: the relative factor to inset from the mirrored direction, representing a proportional length of the applied view.
     case relativeMirrored(factor: CGFloat)
-    
+
     /// A fixed inset.
     public static var fixed: Self {
         .fixed(length: .zero)
     }
-    
+
     /// A fixed, mirrored inset.
     public static var fixedMirrored: Self {
         .fixedMirrored(length: .zero)
     }
-    
+
     /// A relative inset.
     public static var relative: Self {
         .relative(factor: .zero)
     }
-    
+
     /// A relative, mirrored inset.
     public static var relativeMirrored: Self {
         .relativeMirrored(factor: .zero)
     }
-    
+
     /// The mirrored inset.
     ///
     /// This is often useful to specify an inset that starts from one edge, but constraints the opposite edge.
     public var mirrored: Self {
         switch self {
-        case .fixed(let length):
-                .fixedMirrored(length: length)
-        case .fixedMirrored(let length):
-                .fixed(length: length)
-        case .relative(let factor):
-                .relativeMirrored(factor: factor)
-        case .relativeMirrored(let factor):
-                .relative(factor: factor)
+        case let .fixed(length):
+            .fixedMirrored(length: length)
+        case let .fixedMirrored(length):
+            .fixed(length: length)
+        case let .relative(factor):
+            .relativeMirrored(factor: factor)
+        case let .relativeMirrored(factor):
+            .relative(factor: factor)
         }
     }
-    
+
     /// Applies the inset to a length.
     ///
     /// - Parameters:
     ///   - to: the total length to apply.
     public func apply(to total: CGFloat) -> CGFloat {
         switch self {
-        case .fixed(let length):
+        case let .fixed(length):
             length
-        case .fixedMirrored(let length):
+        case let .fixedMirrored(length):
             total - length
-        case .relative(let factor):
+        case let .relative(factor):
             total * factor
-        case .relativeMirrored(let factor):
+        case let .relativeMirrored(factor):
             total * (1 - factor)
         }
     }
@@ -97,7 +97,7 @@ public struct MorphedInsets: Hashable, Equatable {
     public var bottom: MorphedInset = .fixed
     /// The ``MorphedInset`` for the trailing edge.
     public var trailing: MorphedInset = .fixed
-    
+
     /// Initializes a ``MorphedInsets``.
     ///
     /// - Parameters:
@@ -116,7 +116,7 @@ public struct MorphedInsets: Hashable, Equatable {
         self.bottom = bottom
         self.trailing = trailing
     }
-    
+
     /// Applies the insets to a size.
     ///
     /// - Parameters:

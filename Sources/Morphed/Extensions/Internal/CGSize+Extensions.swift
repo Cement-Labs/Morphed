@@ -13,14 +13,14 @@ extension CGSize {
         case .plus: 1
         case .minus: -1
         }
-        let newWidth = self.width + sign * (insets.leading + insets.trailing)
-        let newHeight = self.height + sign * (insets.top + insets.bottom)
+        let newWidth = width + sign * (insets.leading + insets.trailing)
+        let newHeight = height + sign * (insets.top + insets.bottom)
         return .init(
             x: insets.leading, y: insets.bottom,
             width: max(0, newWidth), height: max(0, newHeight)
         )
     }
-    
+
     func translatingInsets(_ insets: EdgeInsets, sign: FloatingPointSign = .plus) -> CGRect {
         let sign: CGFloat = switch sign {
         case .plus: 1

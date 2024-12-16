@@ -21,7 +21,7 @@ public extension View {
     ) -> some View {
         modifier(MorphedViewModifier(blurRadius: blurRadius, insets: insets, mask: mask))
     }
-    
+
     /// Applies a progressive blur effect with a simple linear gradient.
     ///
     /// - Parameters:

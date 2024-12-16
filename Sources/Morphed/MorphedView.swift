@@ -5,18 +5,18 @@
 //  Created by KrLite on 2024/11/29.
 //
 
-import SwiftUI
 import CoreImage
 import CoreImage.CIFilterBuiltins
+import SwiftUI
 
 /// Applies a progressive gradient effect to a view.
 public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: View, Mask: View {
     public let blurRadius: CGFloat
     public let insets: MorphedInsets
-    
+
     @ViewBuilder public var content: () -> Content
     @ViewBuilder public var mask: () -> Mask
-    
+
     /// Initializes a ``MorphedView``.
     ///
     /// - Parameters:
@@ -36,49 +36,47 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
         self.content = content
         self.mask = mask
     }
-    
-    public func makeNSView(context: Context) -> NSView {
+
+    public func makeNSView(context _: Context) -> NSView {
         let view = NSHostingView(rootView: content())
         view.translatesAutoresizingMaskIntoConstraints = false
         view.wantsLayer = true
         view.layer?.backgroundColor = .clear
-        
+
         let containerView = NSView()
         containerView.translatesAutoresizingMaskIntoConstraints = false
-        
+
         containerView.addSubview(view)
         NSLayoutConstraint.activate([
             view.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
             view.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
             view.topAnchor.constraint(equalTo: containerView.topAnchor),
-            view.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)
+            view.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
         ])
-        
+
         attachBlurView(to: containerView)
-        
+
         return containerView
     }
-    
-    public func updateNSView(_ nsView: NSView, context: Context) {
-        
-    }
-    
+
+    public func updateNSView(_: NSView, context _: Context) {}
+
     private func attachBlurView(to nsView: NSView) {
         guard let mask = renderToCGImage(view: mask) else { return }
         let blurView = MaskedVariableBlurView(mask: mask, blurRadius: blurRadius, insets: insets)
-        
+
         blurView.translatesAutoresizingMaskIntoConstraints = false
         nsView.addSubview(blurView, positioned: .above, relativeTo: nil)
-        
+
         NSLayoutConstraint.activate([
             blurView.leadingAnchor.constraint(equalTo: nsView.leadingAnchor),
             blurView.trailingAnchor.constraint(equalTo: nsView.trailingAnchor),
             blurView.topAnchor.constraint(equalTo: nsView.topAnchor),
-            blurView.bottomAnchor.constraint(equalTo: nsView.bottomAnchor)
+            blurView.bottomAnchor.constraint(equalTo: nsView.bottomAnchor),
         ])
     }
-    
-    private func renderToCGImage<C: View>(view: @escaping () -> C) -> CGImage? {
+
+    private func renderToCGImage<C: View>(view _: @escaping () -> C) -> CGImage? {
         let renderer = ImageRenderer(content: mask())
         return renderer.cgImage
     }
@@ -91,8 +89,8 @@ public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: Vie
             ScrollView {
                 LinearGradient(colors: [.red, .yellow, .green, .blue, .purple], startPoint: .top, endPoint: .bottom)
                     .frame(height: 1000)
-                
-                ForEach(0..<100) { num in
+
+                ForEach(0 ..< 100) { num in
                     Text("\(num)")
                         .font(.title)
                         .padding()

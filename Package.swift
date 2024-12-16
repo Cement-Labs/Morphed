@@ -5,12 +5,13 @@ import PackageDescription
 let package = Package(
     name: "Morphed",
     platforms: [
-        .macOS(.v13)
+        .macOS(.v13),
     ],
     products: [
         .library(
             name: "Morphed",
-            targets: ["Morphed"]),
+            targets: ["Morphed"]
+        ),
     ],
     targets: [
         .target(
