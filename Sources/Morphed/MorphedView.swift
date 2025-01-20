@@ -13,7 +13,7 @@ import SwiftUI
 public struct MorphedView<Content, Mask>: NSViewRepresentable where Content: View, Mask: View {
     public let blurRadius: CGFloat
     public let insets: MorphedInsets
-    let isActive: Bool
+    public let isActive: Bool
 
     @ViewBuilder public var content: () -> Content
     @ViewBuilder public var mask: () -> Mask
